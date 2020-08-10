@@ -1,9 +1,26 @@
 import tkinter as tk
 import tkinter.scrolledtext as scrolledText
-from get_read_mails import get_service,get_message,search_message
+from get_read_mails import get_service,get_message,search_message,delete_message
 import os
 
 GMAIL = ""
+
+def make_menu(w):
+    global the_menu
+    the_menu = tk.Menu(w, tearoff=0)
+    the_menu.add_command(label="Cut")
+    the_menu.add_command(label="Copy")
+    the_menu.add_command(label="Paste")
+
+def show_menu(e):
+    w = e.widget
+    the_menu.entryconfigure("Cut",
+    command=lambda: w.event_generate("<<Cut>>"))
+    the_menu.entryconfigure("Copy",
+    command=lambda: w.event_generate("<<Copy>>"))
+    the_menu.entryconfigure("Paste",
+    command=lambda: w.event_generate("<<Paste>>"))
+    the_menu.tk.call("tk_popup", the_menu, e.x_root, e.y_root)
 
 def get_id():
     out =  search_message(get_service(),GMAIL,search_entry.get())
@@ -45,5 +62,17 @@ show_msg_frame.place(relx = 0.3,rely=0.15,relwidth= 0.7,relheight=0.8)
 
 show_msg_text = tk.Text(show_msg_frame,bg="#121212",fg="#cccccc")
 show_msg_text.place(relheight=1,relwidth=1)
+
+make_menu(root)
+e1 = tk.Entry()
+
+e1.place(relx=0.3,relwidth=0.4)
+e1.bind_class("Entry", "<Button-3><ButtonRelease-3>", show_menu)
+
+utils = tk.Frame(root,bg="#121212")
+utils.place(relx=0.025,rely=0.65,relwidth=0.175,relheight=0.3)
+
+delete_button = tk.Button(utils,text="Delete message with this id",command=lambda : delete_message(get_service(),GMAIL,search_entry.get()))
+delete_button.grid(row=0,column=0)
 
 root.mainloop()

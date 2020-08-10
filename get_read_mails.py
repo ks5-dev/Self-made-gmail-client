@@ -9,21 +9,15 @@ from google.auth.transport.requests import Request
 import base64
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://mail.google.com/']
 
 
 def search_message(service, user_id, search_string):
     """
-    Search the inbox for emails using standard gmail search parameters
-    and return a list of email IDs for each result
-    PARAMS:
-        service: the google api service object already instantiated
-        user_id: user id for google api service ('me' works here if
-        already authenticated)
-        search_string: search operators you can use with Gmail
-        (see https://support.google.com/mail/answer/7190?hl=en for a list)
-    RETURNS:
-        List containing email IDs of search query
+    take the services from get_service()
+    user_id : your gmail
+    search_string : the search keyword
+    returns a list containing email IDs of search query
     """
     try:
         # initiate the list for returning
@@ -31,15 +25,13 @@ def search_message(service, user_id, search_string):
 
         # get the id of all messages that are in the search string
         search_ids = service.users().messages().list(userId=user_id, q=search_string).execute()
-        
+
         # if there were no results, print warning and return empty string
         try:
             ids = search_ids['messages']
 
         except KeyError:
-            print("WARNING: the search queried returned 0 results")
-            print("returning an empty string")
-            return ""
+            return ["Nothing found"]
 
         if len(ids)>1:
             for msg_id in ids:
@@ -49,24 +41,17 @@ def search_message(service, user_id, search_string):
         else:
             list_ids.append(ids['id'])
             return list_ids
-        
-    except (errors.HttpError, error):
-        print("An error occured: %s") % error
+
+    except Exception as error:
+        print(error)
 
 
 def get_message(service, user_id, msg_id):
     """
-    Search the inbox for specific message by ID and return it back as a 
-    clean string. String may contain Python escape characters for newline
-    and return line. 
-    
-    PARAMS
-        service: the google api service object already instantiated
-        user_id: user id for google api service ('me' works here if
-        already authenticated)
-        msg_id: the unique id of the email you need
-    RETURNS
-        A string of encoded text containing the message body
+    take the services from get_service()
+    user_id : your gmail
+    msg_id : id of the message, get from search_message()
+    returns gmail's messages after encoded
     """
     try:
         # grab the message instance
@@ -93,22 +78,19 @@ def get_message(service, user_id, msg_id):
             return mime_msg.get_payload()
 
         else:
-            return ""
-            print("\nMessage is not text or multipart, returned an empty string")
-    # unsure why the usual exception doesn't work in this case, but 
+            return "Message is not text"
+
+    # unsure why the usual exception doesn't work in this case, but
     # having a standard Exception seems to do the trick
-    except Exception:
-        print("An error occured: %s") % error
+    except Exception as error:
+        print(error)
 
 
 def get_service():
     """
-    Authenticate the google api client and return the service object 
+    Authenticate the google api client and return the service object
     to make further calls
-    PARAMS
-        None
-    RETURNS
-        service api object from gmail for making calls
+    return service api
     """
     creds = None
 
@@ -135,3 +117,11 @@ def get_service():
     service = build('gmail', 'v1', credentials=creds)
 
     return service
+
+def delete_message(service, user_id, msg_id):
+  #delete the msg
+  try:
+    service.users().messages().delete(userId=user_id, id=msg_id).execute()
+    print('Message with id: %s deleted successfully.' % msg_id)
+  except Exception as error:
+    print(error)
