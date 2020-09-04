@@ -1,0 +1,2 @@
+client id : 85034292885-pmgv1rrmibtgkg90sti1vhf9ah6s2o87.apps.googleusercontent.com
+secret id : UGvjTXF7FdsevSFbskUnh9fu
